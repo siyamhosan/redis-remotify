@@ -1,6 +1,6 @@
 {
 	"name": "@siyamhosan/redis-remotify",
-	"version": "0.2.5",
+	"version": "0.2.6",
 	"description": "a tiny library for remote calls and events via redis",
 	"main": "bin/index.js",
 	"typings": "bin/index.d.ts",

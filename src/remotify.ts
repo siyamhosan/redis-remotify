@@ -22,6 +22,34 @@ type Callback = {
 
 // Support either Redis instance or Cluster
 type Redisish = RedisClient | RedisCluster;
+type RedisClients =
+	| Redisish
+	| {
+			pub: Redisish;
+			sub?: Redisish;
+	  };
+
+function duplicateRedis(redis: Redisish) {
+	if (typeof (redis as any).duplicate !== "function") {
+		throw new Error(
+			"Provided redis client does not support duplicate(), pass dedicated pub/sub clients instead.",
+		);
+	}
+	return (redis as any).duplicate() as Redisish;
+}
+
+function resolveClients(clients: RedisClients): { pub: Redisish; sub: Redisish } {
+	if ("pub" in clients) {
+		return {
+			pub: clients.pub,
+			sub: clients.sub ?? duplicateRedis(clients.pub),
+		};
+	}
+	return {
+		pub: clients,
+		sub: duplicateRedis(clients),
+	};
+}
 
 function jsonReplacer(_key: string, e: any) {
 	if (e instanceof Error) {
@@ -59,11 +87,12 @@ export class Listen {
 
 	constructor(
 		private serverid: string,
-		clients: { pub: Redisish; sub: Redisish },
+		clients: RedisClients,
 		private config = { jsonReplacer },
 	) {
-		this.pubClient = clients.pub;
-		this.subClient = clients.sub;
+		const resolved = resolveClients(clients);
+		this.pubClient = resolved.pub;
+		this.subClient = resolved.sub;
 
 		// Always subscribe 'message'
 		this.subClient.on("message", this.onCall);
@@ -150,7 +179,7 @@ function randomid() {
 }
 function defaultConfig() {
 	return {
-		clientid: "unnamed",
+		clientid: `client_${randomid()}`,
 		callbackTimeout: 60 * 1000,
 	};
 }
@@ -159,6 +188,7 @@ type Config = ReturnType<typeof defaultConfig>;
 export class Remotify {
 	pubClient: Redisish;
 	subClient: Redisish;
+	private callbackChannel: string;
 	private callbacks = new Map<
 		number,
 		{ resolve: (arg: any) => void; reject: (arg: any) => void }
@@ -168,17 +198,17 @@ export class Remotify {
 
 	constructor(
 		private serverid: string,
-		clients: { pub: Redisish; sub: Redisish },
+		clients: RedisClients,
 		config: Partial<Config> = {},
 	) {
-		this.pubClient = clients.pub;
-		this.subClient = clients.sub;
+		const resolved = resolveClients(clients);
+		this.pubClient = resolved.pub;
+		this.subClient = resolved.sub;
 		this.config = { ...defaultConfig(), ...config };
 		this.config.clientid = this.config.clientid + "_" + randomid();
+		this.callbackChannel = `/remotify/${this.serverid}/callback/${this.config.clientid}`;
 		this.subClient.on("message", this.onCallback);
-		this.subClient.subscribe(
-			`/remotify/${this.serverid}/callback/${this.config.clientid}`,
-		);
+		this.subClient.subscribe(this.callbackChannel);
 	}
 
 	private addCallback<T>() {
@@ -200,10 +230,11 @@ export class Remotify {
 		};
 	}
 	private onCallback = (ns: string, str: string) => {
-		const [, _remotify, _ns, _callback, ,] = ns.split("/");
+		const [, _remotify, _ns, _callback, _clientid] = ns.split("/");
 		if (_remotify !== "remotify") return;
 		if (_ns !== this.serverid) return;
 		if (_callback !== "callback") return;
+		if (_clientid !== this.config.clientid) return;
 		const data: Callback = JSON.parse(str);
 		const cb = this.callbacks.get(data.callback);
 		if (cb) {
