@@ -1,18 +1,20 @@
 {
 	"name": "@siyamhosan/redis-remotify",
-	"version": "0.2.4",
+	"version": "0.2.5",
 	"description": "a tiny library for remote calls and events via redis",
 	"main": "bin/index.js",
 	"typings": "bin/index.d.ts",
-	"author": "phiresky",
+	"author": "siyamhosan",
 	"license": "MIT",
 	"scripts": {
-		"prepublish": "tsc",
-		"precommit": "lint-staged"
+		"build": "tsc",
+		"prepublishOnly": "tsc",
+		"precommit": "lint-staged",
+		"publish:public": "npm publish --access public"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/phiresky/redis-remotify"
+		"url": "git+https://github.com/siyamhosan/redis-remotify.git"
 	},
 	"files": [
 		"bin",
