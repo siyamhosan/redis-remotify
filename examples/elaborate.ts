@@ -1,6 +1,6 @@
 import { Remotify, Listen } from "../src/remotify";
 import { sleep } from "../src/util";
-import * as redis from "redis";
+import Redis from "ioredis";
 
 const mode = process.argv[2];
 if (!mode) {
@@ -26,8 +26,8 @@ class Tester {
 }
 
 async function init() {
-	const pub = redis.createClient();
-	const sub = pub.duplicate();
+	const pub = new Redis();
+	const sub = new Redis();
 
 	if (mode === "client") {
 		const r = new Remotify("remotifytest", {

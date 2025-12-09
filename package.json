@@ -1,5 +1,5 @@
 {
-	"name": "@phiresky/redis-remotify",
+	"name": "@siyamhosan/redis-remotify",
 	"version": "0.2.4",
 	"description": "a tiny library for remote calls and events via redis",
 	"main": "bin/index.js",
@@ -24,20 +24,17 @@
 			"git add"
 		]
 	},
-	"peerDependencies": {
-		"redis": "^2.8.0"
-	},
 	"devDependencies": {
-		"@types/debug": "^4.1.5",
-		"@types/redis": "^2.8.17",
-		"husky": "^4.2.3",
-		"lint-staged": "^10.1.2",
-		"prettier": "^2.0.2",
-		"redis": "^3.0.2",
-		"ts-node": "^8.8.2",
-		"typescript": "^3.8.3"
+		"@types/debug": "^4.1.12",
+		"@types/redis": "^2.8.32",
+		"husky": "^4.3.8",
+		"lint-staged": "^10.5.4",
+		"prettier": "^2.8.8",
+		"ts-node": "^8.10.2",
+		"typescript": "^3.9.10"
 	},
 	"dependencies": {
-		"debug": "^4.1.1"
+		"debug": "^4.4.3",
+		"ioredis": "^5.8.2"
 	}
 }

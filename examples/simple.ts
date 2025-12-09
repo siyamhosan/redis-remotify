@@ -1,5 +1,5 @@
 import { Remotify, Listen } from "../src/remotify";
-import * as redis from "redis";
+import Redis from "ioredis";
 
 class Squarer {
 	public async square(x: number) {
@@ -8,8 +8,8 @@ class Squarer {
 	}
 }
 
-const pub = redis.createClient();
-const sub = redis.createClient();
+const pub = new Redis();
+const sub = new Redis();
 
 async function clientProcess() {
 	const backend = new Remotify("backend", { pub, sub });

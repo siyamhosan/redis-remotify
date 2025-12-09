@@ -4,7 +4,11 @@ A tiny library for remote calls and events via redis.
 
 Install via npm:
 
-    yarn add @phiresky/redis-remotify
+    yarn add @siyamhosan/redis-remotify
+
+# Author
+
+- [phiresky](https://github.com/phiresky)
 
 ## Example use
 
@@ -22,13 +26,13 @@ class Squarer {
 But you want to use the functions it provides in different processes. With this library, you can start a server process like this:
 
 ```typescript
-import * as redis from "redis";
-import { Listen } from "@phiresky/redis-remotify";
+import Redis from "ioredis";
+import { Listen } from "@siyamhosan/redis-remotify";
 
 const squarer = new Squarer();
 
-const pub = redis.createClient();
-const sub = redis.createClient();
+const pub = new Redis();
+const sub = new Redis();
 const r = new Listen("backend", { pub, sub });
 // add methods to RPC interface with a name like Squarer.square()
 r.listenAll(squarer);
@@ -37,7 +41,7 @@ r.listenAll(squarer);
 And then call the functions from one or more separate node processes like this:
 
 ```typescript
-import { Remotify } from "@phiresky/redis-remotify";
+import { Remotify } from "@siyamhosan/redis-remotify";
 
 const backend = new Remotify("backend", { pub, sub });
 const remoteSquarer = backend.remotifyClass(Squarer);
